@@ -1,5 +1,6 @@
 from models.resnet import vanilla, cbam, sasa, saaa, aacn
 from models.transformers import vit, maxvit, nextvit, swint
+from models import convnext
 
 models = {
     'resnet18_vanilla': vanilla.resnet18,
@@ -40,19 +41,24 @@ models = {
     "swin_b": swint.swin_b,
     "swin_v2_t": swint.swin_v2_t,
     "swin_v2_s": swint.swin_v2_s,
-    "swin_v2_b": swint.swin_v2_b
+    "swin_v2_b": swint.swin_v2_b,
+    "convnext_tiny": convnext.convnext_tiny,
+    "convnext_small": convnext.convnext_small,
+    "convnext_base": convnext.convnext_base,
+    "convnext_large": convnext.convnext_large
 }
 
 
-def get_model(num_classes, configs=None):
-    model = models[configs['model']](num_classes=num_classes)
-    return model
+def get_model(num_classes, model, pretrained=False):
+    return models[model](num_classes=num_classes, pretrained=pretrained)
 
 
 if __name__ == '__main__':
     configs = {
-        'model': 'resnet18_vanilla'
+        'num_classes': 50,
+        'model': 'resnet18_vanilla',
+        'pretrained': True
     }
 
-    model = get_model(50, configs=configs)
+    model = get_model(num_classes=configs['num_classes'], model=configs['model'], pretrained=configs['pretrained'])
     print(model)
