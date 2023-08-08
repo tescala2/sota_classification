@@ -12,4 +12,4 @@ PyTorch implementations of state-of-the-art computer vision algorithms utilizing
 [Next-ViT](https://github.com/tescala2/sota_classification/blob/main/models/transformers/nextvit.py) - ["Next-ViT: Next Generation Vision Transformer for Efficient Deployment in Realistic Industrial Scenarios"](https://arxiv.org/abs/2207.05501) \
 [SwinT](https://github.com/tescala2/sota_classification/blob/main/models/transformers/swint.py) - ["Swin Transformer: Hierarchical Vision Transformer using Shifted Windows"](https://arxiv.org/abs/2103.14030) \
 [SwinT V2](https://github.com/tescala2/sota_classification/blob/main/models/transformers/swint.py) - ["Swin Transformer V2: Scaling Up Capacity and Resolution"](https://arxiv.org/abs/2111.09883) \
-[ConvNeXt](https://github.com/tescala2/sota_classification/blob/main/models/convnext.py) - ["A ConvNet for the 2020s"](https://arxiv.org/abs/2201.03545) \
+[ConvNeXt](https://github.com/tescala2/sota_classification/blob/main/models/convnext.py) - ["A ConvNet for the 2020s"](https://arxiv.org/abs/2201.03545)
