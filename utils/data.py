@@ -23,7 +23,7 @@ class ImageDataset(Dataset):
         return image, label
 
 
-def get_dataloader(path, mode, bs, transform, shuffle=True, num_workers=24):
+def get_dataloader(path, mode, bs, transform=None, shuffle=True, num_workers=24):
     dataset = ImageDataset(
         annotations_file=f'{path}/data/{mode}/chips/labels.csv',
         img_dir=f'{path}/data/{mode}/chips/images/',
