@@ -9,9 +9,9 @@ from torch.utils import model_zoo
 
 device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
 
-__all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
-           'resnet152', 'resnext50_32x4d', 'resnext101_32x8d',
-           'wide_resnet50_2', 'wide_resnet101_2']
+__all__ = ['ResNet', 'resnet18_bot', 'resnet34_bot', 'resnet50_bot', 'resnet101_bot',
+           'resnet152_bot', 'resnext50_32x4d_bot', 'resnext101_32x8d_bot',
+           'wide_resnet50_2_bot', 'wide_resnet101_2_bot']
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -486,7 +486,7 @@ def resnext50_32x4d_bot(pretrained: bool = True, **kwargs: Any) -> ResNet:
     kwargs['width_per_group'] = 4
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
-        pretrained_state_dict = model_zoo.load_url(model_urls['resnet152'])
+        pretrained_state_dict = model_zoo.load_url(model_urls['resnext50_32x4d'])
         now_state_dict = model.state_dict()
         now_state_dict.update(pretrained_state_dict)
         model.load_state_dict(now_state_dict, strict=False)
@@ -504,7 +504,7 @@ def resnext101_32x8d_bot(pretrained: bool = True, **kwargs: Any) -> ResNet:
     kwargs['width_per_group'] = 8
     model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
     if pretrained:
-        pretrained_state_dict = model_zoo.load_url(model_urls['resnet152'])
+        pretrained_state_dict = model_zoo.load_url(model_urls['resnext101_32x8d'])
         now_state_dict = model.state_dict()
         now_state_dict.update(pretrained_state_dict)
         model.load_state_dict(now_state_dict, strict=False)
@@ -526,7 +526,7 @@ def wide_resnet50_2_bot(pretrained: bool = True, **kwargs: Any) -> ResNet:
     kwargs['width_per_group'] = 64 * 2
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
-        pretrained_state_dict = model_zoo.load_url(model_urls['resnet152'])
+        pretrained_state_dict = model_zoo.load_url(model_urls['wide_resnet50_2'])
         now_state_dict = model.state_dict()
         now_state_dict.update(pretrained_state_dict)
         model.load_state_dict(now_state_dict, strict=False)
@@ -548,7 +548,7 @@ def wide_resnet101_2_bot(pretrained: bool = True, **kwargs: Any) -> ResNet:
     kwargs['width_per_group'] = 64 * 2
     model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
     if pretrained:
-        pretrained_state_dict = model_zoo.load_url(model_urls['resnet152'])
+        pretrained_state_dict = model_zoo.load_url(model_urls['wide_resnet101_2'])
         now_state_dict = model.state_dict()
         now_state_dict.update(pretrained_state_dict)
         model.load_state_dict(now_state_dict, strict=False)
