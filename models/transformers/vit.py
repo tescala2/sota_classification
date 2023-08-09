@@ -8,8 +8,6 @@ import torch.nn as nn
 from torch.utils import model_zoo
 from torchvision.models._utils import _ovewrite_named_param
 from torchvision.ops.misc import Conv2dNormActivation, MLP
-from torchvision.utils import _log_api_usage_once
-from torchvision.models._api import Weights, WeightsEnum
 
 __all__ = ["VisionTransformer", "vit_b_16", "vit_b_32", "vit_l_16", "vit_l_32"]
 
@@ -168,7 +166,6 @@ class VisionTransformer(nn.Module):
             conv_stem_configs: Optional[List[ConvStemConfig]] = None,
     ):
         super().__init__()
-        _log_api_usage_once(self)
         torch._assert(image_size % patch_size == 0, "Input shape indivisible by patch size!")
         self.image_size = image_size
         self.patch_size = patch_size
@@ -225,12 +222,24 @@ class VisionTransformer(nn.Module):
         self.seq_length = seq_length
 
         heads_layers: OrderedDict[str, nn.Module] = OrderedDict()
-        if representation_size is None:
-            heads_layers["head"] = nn.Linear(hidden_dim, num_classes)
+        if num_classes == 1000:
+            if representation_size is None:
+                heads_layers["head"] = nn.Linear(hidden_dim, num_classes)
+            else:
+                heads_layers["pre_logits"] = nn.Linear(hidden_dim, representation_size)
+                heads_layers["act"] = nn.Tanh()
+                heads_layers["head"] = nn.Linear(representation_size, num_classes)
         else:
-            heads_layers["pre_logits"] = nn.Linear(hidden_dim, representation_size)
-            heads_layers["act"] = nn.Tanh()
-            heads_layers["head"] = nn.Linear(representation_size, num_classes)
+            if representation_size is None:
+                heads_layers["head"] = nn.Sequential(nn.Linear(hidden_dim, 1000),
+                                                     nn.ReLU(),
+                                                     nn.Linear(1000, num_classes))
+            else:
+                heads_layers["pre_logits"] = nn.Linear(hidden_dim, representation_size)
+                heads_layers["act"] = nn.Tanh()
+                heads_layers["head"] = nn.Sequential(nn.Linear(representation_size, num_classes),
+                                                     nn.ReLU(),
+                                                     nn.Linear(1000, num_classes))
 
         self.heads = nn.Sequential(heads_layers)
 
@@ -295,38 +304,6 @@ class VisionTransformer(nn.Module):
         x = self.heads(x)
 
         return x
-
-
-def _vision_transformer(
-        patch_size: int,
-        num_layers: int,
-        num_heads: int,
-        hidden_dim: int,
-        mlp_dim: int,
-        weights: Optional[WeightsEnum],
-        progress: bool,
-        **kwargs: Any,
-) -> VisionTransformer:
-    if weights is not None:
-        _ovewrite_named_param(kwargs, "num_classes", len(weights.meta["categories"]))
-        assert weights.meta["min_size"][0] == weights.meta["min_size"][1]
-        _ovewrite_named_param(kwargs, "image_size", weights.meta["min_size"][0])
-    image_size = kwargs.pop("image_size", 224)
-
-    model = VisionTransformer(
-        image_size=image_size,
-        patch_size=patch_size,
-        num_layers=num_layers,
-        num_heads=num_heads,
-        hidden_dim=hidden_dim,
-        mlp_dim=mlp_dim,
-        **kwargs,
-    )
-
-    if weights:
-        model.load_state_dict(weights.get_state_dict(progress=progress, check_hash=True))
-
-    return model
 
 
 def interpolate_embeddings(
@@ -413,17 +390,7 @@ def vit_b_16(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale <https://arxiv.org/abs/2010.11929>`_.
 
     Args:
-        weights (:class:`~torchvision.models.ViT_B_16_Weights`, optional): The pretrained
-            weights to use. See :class:`~torchvision.models.ViT_B_16_Weights`
-            below for more details and possible values. By default, no pre-trained weights are used.
-        progress (bool, optional): If True, displays a progress bar of the download to stderr. Default is True.
-        **kwargs: parameters passed to the ``torchvision.models.vision_transformer.VisionTransformer``
-            base class. Please refer to the `source code
-            <https://github.com/pytorch/vision/blob/main/torchvision/models/vision_transformer.py>`_
-            for more details about this class.
-
-    .. autoclass:: torchvision.models.ViT_B_16_Weights
-        :members:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = VisionTransformer(
         image_size=224,
@@ -448,17 +415,7 @@ def vit_b_32(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale <https://arxiv.org/abs/2010.11929>`_.
 
     Args:
-        weights (:class:`~torchvision.models.ViT_B_32_Weights`, optional): The pretrained
-            weights to use. See :class:`~torchvision.models.ViT_B_32_Weights`
-            below for more details and possible values. By default, no pre-trained weights are used.
-        progress (bool, optional): If True, displays a progress bar of the download to stderr. Default is True.
-        **kwargs: parameters passed to the ``torchvision.models.vision_transformer.VisionTransformer``
-            base class. Please refer to the `source code
-            <https://github.com/pytorch/vision/blob/main/torchvision/models/vision_transformer.py>`_
-            for more details about this class.
-
-    .. autoclass:: torchvision.models.ViT_B_32_Weights
-        :members:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = VisionTransformer(
         image_size=224,
@@ -483,17 +440,7 @@ def vit_l_16(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale <https://arxiv.org/abs/2010.11929>`_.
 
     Args:
-        weights (:class:`~torchvision.models.ViT_L_16_Weights`, optional): The pretrained
-            weights to use. See :class:`~torchvision.models.ViT_L_16_Weights`
-            below for more details and possible values. By default, no pre-trained weights are used.
-        progress (bool, optional): If True, displays a progress bar of the download to stderr. Default is True.
-        **kwargs: parameters passed to the ``torchvision.models.vision_transformer.VisionTransformer``
-            base class. Please refer to the `source code
-            <https://github.com/pytorch/vision/blob/main/torchvision/models/vision_transformer.py>`_
-            for more details about this class.
-
-    .. autoclass:: torchvision.models.ViT_L_16_Weights
-        :members:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = VisionTransformer(
         image_size=224,
@@ -518,17 +465,7 @@ def vit_l_32(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale <https://arxiv.org/abs/2010.11929>`_.
 
     Args:
-        weights (:class:`~torchvision.models.ViT_L_32_Weights`, optional): The pretrained
-            weights to use. See :class:`~torchvision.models.ViT_L_32_Weights`
-            below for more details and possible values. By default, no pre-trained weights are used.
-        progress (bool, optional): If True, displays a progress bar of the download to stderr. Default is True.
-        **kwargs: parameters passed to the ``torchvision.models.vision_transformer.VisionTransformer``
-            base class. Please refer to the `source code
-            <https://github.com/pytorch/vision/blob/main/torchvision/models/vision_transformer.py>`_
-            for more details about this class.
-
-    .. autoclass:: torchvision.models.ViT_L_32_Weights
-        :members:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = VisionTransformer(
         image_size=224,

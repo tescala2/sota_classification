@@ -7,9 +7,7 @@ import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 from torch import nn, Tensor
 from torchvision.ops import StochasticDepth
-from torchvision.ops.misc import Conv2dNormActivation, MLP, Permute
-from torchvision.utils import _log_api_usage_once
-from torchvision.models._api import Weights, WeightsEnum
+from torchvision.ops.misc import MLP, Permute
 
 PYTORCH_ENABLE_MPS_FALLBACK = 1
 
@@ -61,7 +59,6 @@ class PatchMerging(nn.Module):
 
     def __init__(self, dim: int, norm_layer: Callable[..., nn.Module] = nn.LayerNorm):
         super().__init__()
-        _log_api_usage_once(self)
         self.dim = dim
         self.reduction = nn.Linear(4 * dim, 2 * dim, bias=False)
         self.norm = norm_layer(4 * dim)
@@ -88,7 +85,6 @@ class PatchMergingV2(nn.Module):
 
     def __init__(self, dim: int, norm_layer: Callable[..., nn.Module] = nn.LayerNorm):
         super().__init__()
-        _log_api_usage_once(self)
         self.dim = dim
         self.reduction = nn.Linear(4 * dim, 2 * dim, bias=False)
         self.norm = norm_layer(2 * dim)  # difference
@@ -421,7 +417,6 @@ class SwinTransformerBlock(nn.Module):
             attn_layer: Callable[..., nn.Module] = ShiftedWindowAttention,
     ):
         super().__init__()
-        _log_api_usage_once(self)
 
         self.norm1 = norm_layer(dim)
         self.attn = attn_layer(
@@ -535,7 +530,6 @@ class SwinTransformer(nn.Module):
             downsample_layer: Callable[..., nn.Module] = PatchMerging,
     ):
         super().__init__()
-        _log_api_usage_once(self)
         self.num_classes = num_classes
 
         if block is None:
@@ -589,7 +583,12 @@ class SwinTransformer(nn.Module):
         self.permute = Permute([0, 3, 1, 2])  # B H W C -> B C H W
         self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.flatten = nn.Flatten(1)
-        self.head = nn.Linear(num_features, num_classes)
+        if num_classes == 1000:
+            self.head = nn.Linear(num_features, num_classes)
+        else:
+            self.head = nn.Sequential(nn.Linear(num_features, 1000),
+                                      nn.ReLU(),
+                                      nn.Linear(1000, num_classes))
 
         for m in self.modules():
             if isinstance(m, nn.Linear):
@@ -605,36 +604,6 @@ class SwinTransformer(nn.Module):
         x = self.flatten(x)
         x = self.head(x)
         return x
-
-
-def _swin_transformer(
-        patch_size: List[int],
-        embed_dim: int,
-        depths: List[int],
-        num_heads: List[int],
-        window_size: List[int],
-        stochastic_depth_prob: float,
-        weights: Optional[WeightsEnum],
-        progress: bool,
-        **kwargs: Any,
-) -> SwinTransformer:
-    # if weights is not None:
-    #     _ovewrite_named_param(kwargs, "num_classes", len(weights.meta["categories"]))
-
-    model = SwinTransformer(
-        patch_size=patch_size,
-        embed_dim=embed_dim,
-        depths=depths,
-        num_heads=num_heads,
-        window_size=window_size,
-        stochastic_depth_prob=stochastic_depth_prob,
-        **kwargs,
-    )
-
-    if weights is not None:
-        model.load_state_dict(weights.get_state_dict(progress=progress, check_hash=True))
-
-    return model
 
 
 def swin_t(pretrained: bool = False, **kwargs: Any) -> SwinTransformer:

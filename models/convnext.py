@@ -8,7 +8,6 @@ import torch.utils.model_zoo as model_zoo
 
 from torchvision.ops import Permute, StochasticDepth, Conv2dNormActivation
 
-
 __all__ = [
     "ConvNeXt", "convnext_tiny", "convnext_small", "convnext_base", "convnext_large"
 ]
@@ -149,9 +148,16 @@ class ConvNeXt(nn.Module):
         lastconv_output_channels = (
             lastblock.out_channels if lastblock.out_channels is not None else lastblock.input_channels
         )
-        self.classifier = nn.Sequential(
-            norm_layer(lastconv_output_channels), nn.Flatten(1), nn.Linear(lastconv_output_channels, num_classes)
-        )
+        if num_classes == 1000:
+            self.classifier = nn.Sequential(norm_layer(lastconv_output_channels),
+                                            nn.Flatten(1),
+                                            nn.Linear(lastconv_output_channels, num_classes))
+        else:
+            self.classifier = nn.Sequential(norm_layer(lastconv_output_channels),
+                                            nn.Flatten(1),
+                                            nn.Linear(lastconv_output_channels, 1000),
+                                            nn.ReLU(),
+                                            nn.Linear(1000, num_classes))
 
         for m in self.modules():
             if isinstance(m, (nn.Conv2d, nn.Linear)):

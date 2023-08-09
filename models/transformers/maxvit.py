@@ -8,11 +8,9 @@ import torch
 import torch.nn.functional as F
 from torch import nn, Tensor
 from torch.utils import model_zoo
-from torchvision.models._api import register_model, Weights, WeightsEnum
 from torchvision.models._utils import _ovewrite_named_param
 from torchvision.ops.misc import Conv2dNormActivation, SqueezeExcitation
 from torchvision.ops.stochastic_depth import StochasticDepth
-from torchvision.utils import _log_api_usage_once
 
 device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
 
@@ -618,7 +616,6 @@ class MaxVit(nn.Module):
             num_classes: int = 1000,
     ) -> None:
         super().__init__()
-        _log_api_usage_once(self)
 
         input_channels = 3
 
@@ -695,14 +692,22 @@ class MaxVit(nn.Module):
 
         # see https://github.com/google-research/maxvit/blob/da76cf0d8a6ec668cc31b399c4126186da7da944/maxvit/models/maxvit.py#L1137-L1158
         # for why there is Linear -> Tanh -> Linear
-        self.classifier = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Flatten(),
-            nn.LayerNorm(block_channels[-1]),
-            nn.Linear(block_channels[-1], block_channels[-1]),
-            nn.Tanh(),
-            nn.Linear(block_channels[-1], num_classes, bias=False),
-        )
+        if num_classes == 1000:
+            self.classifier = nn.Sequential(nn.AdaptiveAvgPool2d(1),
+                                            nn.Flatten(),
+                                            nn.LayerNorm(block_channels[-1]),
+                                            nn.Linear(block_channels[-1], block_channels[-1]),
+                                            nn.Tanh(),
+                                            nn.Linear(block_channels[-1], num_classes, bias=False))
+        else:
+            self.classifier = nn.Sequential(nn.AdaptiveAvgPool2d(1),
+                                            nn.Flatten(),
+                                            nn.LayerNorm(block_channels[-1]),
+                                            nn.Linear(block_channels[-1], block_channels[-1]),
+                                            nn.Tanh(),
+                                            nn.Linear(block_channels[-1], 1000, bias=False),
+                                            nn.Tanh(),
+                                            nn.Linear(1000, num_classes, bias=False))
 
         self._init_weights()
 
@@ -726,47 +731,6 @@ class MaxVit(nn.Module):
                 nn.init.normal_(m.weight, std=0.02)
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
-
-
-def _maxvit(
-        # stem parameters
-        stem_channels: int,
-        # block parameters
-        block_channels: List[int],
-        block_layers: List[int],
-        stochastic_depth_prob: float,
-        # partitioning parameters
-        partition_size: int,
-        # transformer parameters
-        head_dim: int,
-        # Weights API
-        weights: Optional[WeightsEnum] = None,
-        progress: bool = False,
-        # kwargs,
-        **kwargs: Any,
-) -> MaxVit:
-    if weights is not None:
-        _ovewrite_named_param(kwargs, "num_classes", len(weights.meta["categories"]))
-        assert weights.meta["min_size"][0] == weights.meta["min_size"][1]
-        _ovewrite_named_param(kwargs, "input_size", weights.meta["min_size"])
-
-    input_size = kwargs.pop("input_size", (224, 224))
-
-    model = MaxVit(
-        stem_channels=stem_channels,
-        block_channels=block_channels,
-        block_layers=block_layers,
-        stochastic_depth_prob=stochastic_depth_prob,
-        head_dim=head_dim,
-        partition_size=partition_size,
-        input_size=input_size,
-        **kwargs,
-    )
-
-    if weights is not None:
-        model.load_state_dict(weights.get_state_dict(progress=progress, check_hash=True))
-
-    return model
 
 
 def maxvit_t(pretrained: bool = False, **kwargs: Any) -> MaxVit:
