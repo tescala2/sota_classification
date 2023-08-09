@@ -9,6 +9,7 @@ import pandas as ps
 from torch import save, load
 from sklearn.metrics import top_k_accuracy_score
 from .data import get_dataloader
+from .get_model import get_model
 
 
 def train(dataloader, model, criterion, optimizer, device, progress=False, parallel=False):
@@ -87,30 +88,33 @@ def evaluate(dataloader, model, criterion, device, progress=False, parallel=Fals
 
 
 def run(data_path,
-        model,
-        name,
+        model_name,
         device,
         epochs=10,
         lr=0.001,
-        bs=16,
+        bs=64,
         progress=False,
         parallel=False,
-        cont=False):
+        cont=False,
+        num_classes=50):
+    print(f'Beginning Training on {model_name} for {epochs} epochs')
+    model = get_model(num_classes=num_classes, model=model_name)
     if cont:
-        assert os.path.exists(f'best-{name}-losses.csv'), 'No weights to continue from'
-        weights_path = f'best-{name}-weights.pth'
+        print('Loading Weights from Checkpoint')
+        assert os.path.exists(f'checkpoint/{model_name}/best-weights.csv'), 'No weights to continue from'
+        weights_path = f'checkpoint/{model_name}/best-weights.pth'
         weights = load(weights_path)
         model.load_state_dict(weights, strict=True)
 
-    if os.path.exists(f'best-{name}-losses.csv'):
-        best_val_loss = pd.read_csv(f'best-{name}-losses.csv').iloc[-1]['val loss']
+    if os.path.exists(f'checkpoint/{model_name}/best-metrics.csv'):
+        best_val_loss = pd.read_csv(f'checkpoint/{model_name}/best-metrics.csv').iloc[-1]['val loss']
     else:
         best_val_loss = np.inf
 
     print(f'Initial Validation Loss: {best_val_loss:.5f}')
 
-    val_loader = get_dataloader(data_path, 'val', bs=bs)
-    test_loader = get_dataloader(data_path, 'test', bs=bs)
+    val_loader = get_dataloader(data_path, 'val', bs=bs, shuffle=False)
+    test_loader = get_dataloader(data_path, 'test', bs=bs, shuffle=False)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -144,7 +148,7 @@ def run(data_path,
         scheduler.step(val_loss)
 
         metrics.append([train_loss, val_loss, train_acc_1, val_acc_1, train_acc_5, val_acc_5])
-        save(model.state_dict(), f'latest-{name}-weights.pth')
+        save(model.state_dict(), f'checkpoint/{model_name}/latest-weights.pth')
 
         info = f"Epoch {epoch + 1}: Training Loss: {train_loss:.5f}\t Training Accuracy @ 1: {train_acc_1 * 100:.2f}%" \
                f"Validation Loss: {val_loss:.5f}\tValidation Accuracy @ 1: {val_acc_1 * 100:.2f}%"
@@ -152,7 +156,7 @@ def run(data_path,
         best = False
         if best_val_loss > val_loss:
             best = True
-            torch.save(model.state_dict(), f'best-{name}-weights.pth')
+            torch.save(model.state_dict(), f'{model_name}/best-weights.pth')
             best_val_loss = val_loss
 
             test_loss, test_acc_1, test_acc_5 = evaluate(test_loader,
@@ -171,6 +175,45 @@ def run(data_path,
                 metrics,
                 columns=['train loss', 'val loss', 'train acc @ 1', 'val acc @ 1', 'train acc @ 5', 'val acc @ 5']
             ).to_csv(
-                f'best-{name}-losses.csv',
+                f'checkpoint/{model_name}/best-metrics.csv',
                 index=False
             )
+
+
+def run_inference(data_path,
+                  model_name,
+                  device,
+                  bs=64,
+                  progress=False,
+                  parallel=False,
+                  num_classes=50):
+    assert os.path.exists(f'checkpoint/{model_name}/best-weights.csv'), 'No weights to continue from'
+    weights_path = f'checkpoint/{model_name}/best-weights.pth'
+    weights = load(weights_path)
+    model = get_model(num_classes=num_classes, model=model_name)
+    model.load_state_dict(weights, strict=True)
+
+    val_loader = get_dataloader(data_path, 'val', bs=bs, shuffle=False)
+    test_loader = get_dataloader(data_path, 'test', bs=bs, shuffle=False)
+
+    criterion = nn.CrossEntropyLoss()
+
+    val_loss, val_acc_1, val_acc_5 = evaluate(val_loader,
+                                              model,
+                                              criterion,
+                                              device,
+                                              progress=progress,
+                                              parallel=parallel)
+    test_loss, test_acc_1, test_acc_5 = evaluate(test_loader,
+                                                 model,
+                                                 criterion,
+                                                 device,
+                                                 progress=progress,
+                                                 parallel=parallel)
+
+    print('Validation Metrics')
+    print(
+        f"Validation Loss: {val_loss:.5f}\tValidation Accuracy @ 1: {val_acc_1 * 100:.2f}%\tValidation Accuracy @ 5: {val_acc_5 * 100:.2f}%")
+    print('Test Metrics')
+    print(
+        f"Test Loss: {test_loss:.5f}\tTest Accuracy @ 1: {test_acc_1 * 100:.2f}%\tTest Accuracy @ 5: {test_acc_5 * 100:.2f}%")
