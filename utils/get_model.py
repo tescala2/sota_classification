@@ -51,14 +51,3 @@ models = {
 
 def get_model(num_classes, model, pretrained=False):
     return models[model](num_classes=num_classes, pretrained=pretrained)
-
-
-if __name__ == '__main__':
-    configs = {
-        'num_classes': 50,
-        'model': 'resnet18_vanilla',
-        'pretrained': True
-    }
-
-    model = get_model(num_classes=configs['num_classes'], model=configs['model'], pretrained=configs['pretrained'])
-    print(model)
