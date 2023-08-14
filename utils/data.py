@@ -33,8 +33,8 @@ class ImageDataset(Dataset):
 
 def get_dataloader(path, mode, bs, shuffle=True, num_workers=24):
     dataset = ImageDataset(
-        annotations_file=f'{path}/data/{mode}/chips/labels.csv',
-        img_dir=f'{path}/data/{mode}/chips/images/',
+        annotations_file=f'/data/{path}/{mode}/labels.csv',
+        img_dir=f'/data/{path}/{mode}/images/',
         mode=mode
     )
     dataloader = DataLoader(dataset,
