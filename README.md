@@ -7,7 +7,7 @@
 [ResNet (SASA)](https://github.com/tescala2/sota_classification/blob/main/models/resnet/sasa.py) - ["Stand-Alone Self-Attention in Vision Models"](https://arxiv.org/abs/1906.05909v1) \
 [ResNet (SAAA)](https://github.com/tescala2/sota_classification/blob/main/models/resnet/saaa.py) - ["Stand-Alone Axial-Attention for Panoptic Segmentation"](https://arxiv.org/abs/2003.07853) \
 [ResNet (AACN)](https://github.com/tescala2/sota_classification/blob/main/models/resnet/aacn.py) - ["Attention Augmented Convolutional Networks"](https://arxiv.org/abs/1904.09925) \
-[ResNet (BotNet)](https://github.com/tescala2/sota_classification/blob/main/models/resnet/botnet.py) - ["Bottleneck Transformers for Visual Recognition"](https://arxiv.org/abs/2101.11605)
+[ResNet (BotNet)](https://github.com/tescala2/sota_classification/blob/main/models/resnet/botnet.py) - ["Bottleneck Transformers for Visual Recognition"](https://arxiv.org/abs/2101.11605) \
 [ResNet (BAT)](https://github.com/tescala2/sota_classification/blob/main/models/resnet/bat.py) - ["Non-Local Neural Networks With Grouped Bilinear Attentional Transforms"](http://openaccess.thecvf.com/content_CVPR_2020/html/Chi_Non-Local_Neural_Networks_With_Grouped_Bilinear_Attentional_Transforms_CVPR_2020_paper.html) \
 [ViT](https://github.com/tescala2/sota_classification/blob/main/models/transformers/vit.py) - ["An Image is Worth 16x16 Words"](https://arxiv.org/abs/2010.11929) \
 [MaxViT](https://github.com/tescala2/sota_classification/blob/main/models/transformers/maxvit.py) - ["MaxViT: Multi-Axis Vision Transformer"](https://arxiv.org/abs/2204.01697) \
