@@ -19,6 +19,7 @@
 [DeiT](https://github.com/tescala2/sota_classification/blob/main/models/transformers/deit.py) - ["Training data-efficient image transformers & distillation through attention"](https://arxiv.org/abs/2012.12877) \
 [DeiT III](https://github.com/tescala2/sota_classification/blob/main/models/transformers/deit_ls.py) - ["DeiT III: Revenge of the ViT"](https://arxiv.org/pdf/2204.07118.pdf) \
 [CaiT](https://github.com/tescala2/sota_classification/blob/main/models/transformers/cait.py) - ["Going deeper with Image Transformers"](https://arxiv.org/abs/2103.17239)
+[FastViT](https://github.com/tescala2/sota_classification/blob/main/models/transformers/fastvit.py) - ["FastViT: A Fast Hybrid Vision Transformer using Structural Reparameterization"](https://arxiv.org/abs/2303.14189)
 
 
 #### Data should be in the format

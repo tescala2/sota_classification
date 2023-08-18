@@ -1,5 +1,5 @@
 from models.resnet import vanilla, cbam, sasa, saaa, aacn, botnet, bat
-from models.transformers import vit, maxvit, nextvit, swint, deit, deit_ls, cait
+from models.transformers import vit, maxvit, nextvit, swint, deit, deit_ls, cait, fastvit
 from models import convnext, patchconv
 
 models = {
@@ -77,6 +77,13 @@ models = {
     "cait_S24_224": cait.cait_S24_224,
     "cait_XXS24_224": cait.cait_XXS24_224,
     "cait_XXS36_224": cait.cait_XXS36_224,
+    "fastvit_t8": fastvit.fastvit_t8,
+    "fastvit_t12": fastvit.fastvit_t12,
+    "fastvit_s12": fastvit.fastvit_s12,
+    "fastvit_sa12": fastvit.fastvit_sa12,
+    "fastvit_sa24": fastvit.fastvit_sa24,
+    "fastvit_sa36": fastvit.fastvit_sa36,
+    "fastvit_ma36": fastvit.fastvit_ma36
 }
 
 
@@ -89,5 +96,5 @@ def count_parameters(model):
 
 
 if __name__ == '__main__':
-    model = get_model(num_classes=50, model='resnet50_vanilla', pretrained=False)
-    print(model)
+    model = get_model(num_classes=50, model='fastvit_sa36', pretrained=False)
+    print(count_parameters(model))
