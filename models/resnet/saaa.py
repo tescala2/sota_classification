@@ -542,12 +542,12 @@ def wide_resnet101_2_saaa(pretrained: bool = True, **kwargs: Any) -> ResNet:
 
 if __name__ == '__main__':
     attention = [True, True, True, True]
-    num_classes = 50
+    num_classes = 8
 
     device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
-    x = torch.randn(2, 3, 224, 224).to(device)
+    x = torch.randn(64, 3, 224, 224).to(device)
 
-    model = resnet50_saaa(attention=attention, num_classes=num_classes).to(device)
+    model = resnet152_saaa(pretrained=False, attention=attention, num_classes=num_classes).to(device)
 
     print(model)
     print(model(x).size())

@@ -379,12 +379,12 @@ def deit_huge_patch14_LS(pretrained=False, img_size=224, pretrained_21k=False, *
 
 
 if __name__ == '__main__':
-    num_classes = 50
+    num_classes = 8
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    x = torch.randn(2, 3, 224, 224).to(device)
+    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+    x = torch.randn(64, 3, 224, 224).to(device)
 
-    model = deit_tiny_patch16_LS(pretrained=False, num_classes=num_classes).to(device)
+    model = deit_huge_patch14_LS(pretrained=False, num_classes=num_classes).to(device)
 
     print(model)
     print(model(x).size())

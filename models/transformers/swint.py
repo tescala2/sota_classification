@@ -763,12 +763,12 @@ def swin_v2_b(pretrained: bool = False, **kwargs: Any) -> SwinTransformer:
 
 
 if __name__ == '__main__':
-    num_classes = 50
+    num_classes = 8
 
     device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
-    x = torch.randn(2, 3, 224, 224).to(device)
+    x = torch.randn(64, 3, 224, 224).to(device)
 
-    model = swin_v2_t(num_classes=num_classes).to(device)
+    model = swin_v2_b(pretrained=False, num_classes=num_classes).to(device)
 
     print(model)
 

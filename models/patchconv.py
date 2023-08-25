@@ -545,12 +545,12 @@ def L120(pretrained: bool = False, **kwargs):
 
 
 if __name__ == '__main__':
-    num_classes = 50
+    num_classes = 8
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    x = torch.randn(2, 3, 224, 224).to(device)
+    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+    x = torch.randn(64, 3, 224, 224).to(device)
 
-    model = S60(pretrained=False, num_classes=num_classes).to(device)
+    model = L120(pretrained=False, num_classes=num_classes).to(device)
 
     print(model)
     print(model(x).size())

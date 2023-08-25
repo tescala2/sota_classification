@@ -268,12 +268,12 @@ def convnext_large(pretrained: bool = False, **kwargs: Any) -> ConvNeXt:
 
 
 if __name__ == '__main__':
-    num_classes = 50
+    num_classes = 8
 
     device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
-    x = torch.randn(2, 3, 224, 224).to(device)
+    x = torch.randn(64, 3, 224, 224).to(device)
 
-    model = convnext_base(num_classes=num_classes).to(device)
+    model = convnext_large(pretrained=False, num_classes=num_classes).to(device)
 
     print(model)
     print(model(x).size())
